@@ -4,16 +4,16 @@
 #include "projection.h"
 
 using namespace std;
+using namespace projection;
 
-template <typename T>
-Polyline<T> read(std::string const& filename) {
+Polyline read(std::string const& filename) {
     ifstream f{filename};
     if (!f.is_open()) {
         cerr << "File opening failed";
         return {};
     }
-    Polyline<T> polyline;
-    for (Point<T> p; f >> p; ) {
+    Polyline polyline;
+    for (Point p; f >> p; ) {
         polyline.push_back(move(p));
     }
     return polyline;
@@ -22,12 +22,12 @@ Polyline<T> read(std::string const& filename) {
 int main(int argc, char* argv[]) {
     if (argc > 4) {
         std::string filename = argv[1];
-        Point<double> point{
+        Point point{
             std::stod(argv[2]),
             std::stod(argv[3]),
             std::stod(argv[4])
         };
-        auto polyline = read<double>(filename);
+        auto polyline = read(filename);
         auto projections = find(polyline, point);
         cout << projections.size() << '\n';
         for (auto const& p: projections) {

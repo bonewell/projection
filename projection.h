@@ -1,20 +1,20 @@
+#ifndef PROJECTION_H
+#define PROJECTION_H
+
 #include "polyline.h"
 
-template <typename T>
+namespace projection {
 struct ProjectionInfo {
-    int segment;
-    double parameter;
-    Point<T> point;
+    double distance{};
+    int segment{};
+    double parameter{};
+    Point point{};
 };
+bool operator<(ProjectionInfo const& pi1, ProjectionInfo const& pi2);
+std::ostream& operator<<(std::ostream& os, ProjectionInfo const& pi);
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, ProjectionInfo<T> const& pi) {
-    return os << "segment " << pi.segment <<
-                 " parameter " << pi.parameter <<
-                 " point" << pi.point;
-}
+using Projections = std::vector<ProjectionInfo>;
+Projections find(Polyline polyline, Point p);
+} // namespace projection
 
-template <typename T>
-std::vector<ProjectionInfo<T>> find(Polyline<T> polyline, Point<T> p) {
-    return {};
-}
+#endif // PROJECTION_H
