@@ -25,38 +25,62 @@ void sort(Projections &projections) {
     });
 }
 
-std::pair<double, Point> calculateHeight(Point first, Point second, Point p) {
-    Vector v1{first, second};
-    Vector v2{first, p};
-    double cosa = cosAngle(v1, v2);
+double get_distance(double cosa, Vector slope) {
     double sina = std::sqrt(1 - (cosa * cosa));
-    double height = sina * v2.modulo();
-    double parameter = (cosa * v2.modulo())/ v1.modulo();
-    return std::make_pair(height, (v1 * parameter).e);
+    return sina * slope.modulo();
 }
 
-std::pair<double, Point> calculate(Point first, Point second, Point p) {
-    Vector v1{first, second};
-    Vector v2{first, p};
-    double cosa = cosAngle(v1, v2);
-    if (cosa <= 0) return std::make_pair(v2.modulo(), first);
-    Vector v3{second, first};
-    Vector v4{second, p};
-    double cosb = cosAngle(v3, v4);
-    if (cosb <= 0) return std::make_pair(v4.modulo(), second);
-    return calculateHeight(first, second, p);
+double get_parameter(double cosa, Vector slope, Vector bottom) {
+    return (cosa * slope.modulo())/ bottom.modulo();
+}
+
+Point get_point(Vector v, double parameter) {
+    return (v * parameter).e;
+}
+
+ProjectionInfo calculate(Point first, Point second, Point p) {
+    Vector bottomA{first, second};
+    Vector a{first, p};
+    double cosa = cosAngle(bottomA, a);
+    Vector bottomB{second, first};
+    Vector b{second, p};
+    double cosb = cosAngle(bottomB, b);
+
+    ProjectionInfo info;
+    if (cosa <= 0) {
+        info.distance = a.modulo();
+        info.parameter = 0.0;
+        info.point = first;
+    }
+    else if (cosb <= 0) {
+        info.distance = b.modulo();
+        info.parameter = 1.0;
+        info.point = second;
+    }
+    else {
+        info.distance = get_distance(cosa, a);
+        info.parameter = get_parameter(cosa, a, bottomA);
+        info.point = get_point(bottomA, info.parameter);
+    }
+
+    return info;
+}
+
+Calculations::const_iterator tail(Calculations const& calculations) {
+    if (calculations.empty()) return end(calculations);
+    auto value = *begin(calculations);
+    value.distance += 1e-7;
+    return std::upper_bound(begin(calculations), end(calculations), value);
 }
 
 Projections find(Polyline polyline, Point p) {
     Calculations calculations;
     for (size_t i = 1; i < polyline.size(); ++i) {
-        auto [distance, point] = calculate(polyline[i-1], polyline[i], p);
-//        auto parameter = getParameter(polyline[i-1], polyline[i], point);
-        double parameter = 0;
-        calculations.insert({distance, static_cast<int>(i), parameter, point});
+        auto info = calculate(polyline[i-1], polyline[i], p);
+        info.segment = static_cast<int>(i);
+        calculations.insert(std::move(info));
     }
-    Projections projections{begin(calculations), end(calculations)};
-    // filter by 1e-7
+    Projections projections{begin(calculations), tail(calculations)};
     sort(projections);
     return projections;
 }

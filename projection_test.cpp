@@ -32,11 +32,20 @@ TEST(ProjectionTest, NoBevel) {
 }
 
 TEST(ProjectionTest, Sort) {
-    auto res = find({{-5.0, -5.0, 0.0}, {-1.0, -1.0, 0.0},
-                     {1.0, -1.0, 0.0}, {5.0, -5.0, 0.0}}, {});
+    auto res = find({{-5.0, -5.0, 0.0}, {-5.0, 5.0, 0.0},
+                     {5.0, 5.0, 0.0}, {5.0, -5.0, 0.0}}, {});
 
     ASSERT_THAT(res.size(), Eq(3));
     EXPECT_THAT(res[0].segment, Eq(1));
     EXPECT_THAT(res[1].segment, Eq(2));
     EXPECT_THAT(res[2].segment, Eq(3));
+}
+
+TEST(ProjectionTest, Filter) {
+    auto res = find({{-5.0, 5.0, 0.0}, {-1.0, 10.0, 0.0},
+                     {1.0, 10.0, 0.0}, {5.0, 5.0, 0.0}}, {});
+
+    ASSERT_THAT(res.size(), Eq(2));
+    EXPECT_THAT(res[0].segment, Eq(1));
+    EXPECT_THAT(res[1].segment, Eq(3));
 }
